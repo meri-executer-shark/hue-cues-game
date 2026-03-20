@@ -1,36 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Hue & Cues Board</title>
+  <title>Hue Cues Game</title>
+
   <style>
-    body { font-family: Arial; text-align: center; }
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: white;
+    }
 
     .board {
       display: grid;
-      grid-template-columns: repeat(6, 60px);
-      gap: 5px;
+      grid-template-columns: repeat(6, 70px);
+      gap: 6px;
       justify-content: center;
       margin-top: 20px;
     }
 
     .tile {
-      width: 60px;
-      height: 60px;
-      border: 2px solid black;
+      width: 70px;
+      height: 70px;
+      border-radius: 10px;
       cursor: pointer;
+      border: 2px solid white;
+      transition: 0.2s;
+    }
+
+    .tile:hover {
+      transform: scale(1.1);
     }
   </style>
 </head>
+
 <body>
 
-<h1>Hue & Cues Board 🎨</h1>
+  <h1>Hue Cues 🎮</h1>
 
-<p>Pick a tile:</p>
+  <div id="board" class="board"></div>
 
-<div class="board" id="board"></div>
+  <h2 id="result"></h2>
 
-<h2 id="result"></h2>
+  <!-- IMPORTANT: socket first -->
+  <script src="/socket.io/socket.io.js"></script>
 
-<script src="game.js"></script>
+  <!-- your game -->
+  <script src="game.js"></script>
+
 </body>
 </html>
