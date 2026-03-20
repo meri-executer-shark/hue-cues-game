@@ -1,51 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Hue & Cues Multiplayer</title>
+  <title>Hue & Cues Board</title>
   <style>
     body { font-family: Arial; text-align: center; }
-    #hostPanel, #guessPanel { margin-top: 20px; }
-    #secretColor {
-      width: 200px;
-      height: 200px;
-      margin: 10px auto;
-      border: 3px solid black;
-      display: none;
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(6, 60px);
+      gap: 5px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .tile {
+      width: 60px;
+      height: 60px;
+      border: 2px solid black;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-<h1>Hue & Cues 🎨</h1>
+<h1>Hue & Cues Board 🎨</h1>
 
-<div id="hostPanel">
-  <h2>Player 1 (Host)</h2>
+<p>Pick a tile:</p>
 
-  <input type="color" id="colorPicker">
-  <br><br>
+<div class="board" id="board"></div>
 
-  <input type="text" id="clue" placeholder="Write a clue">
-  <br><br>
-
-  <button onclick="setColor()">Set Color + Clue</button>
-</div>
-
-<hr>
-
-<div id="guessPanel">
-  <h2>Player 2 (Guess)</h2>
-
-  <p id="clueText">Waiting for clue...</p>
-
-  <div id="secretColor"></div>
-
-  <input type="color" id="guessColor">
-  <br><br>
-
-  <button onclick="guess()">Guess</button>
-
-  <h3 id="result"></h3>
-</div>
+<h2 id="result"></h2>
 
 <script src="game.js"></script>
 </body>

@@ -1,21 +1,24 @@
-let targetColor = "";
-let clueText = "";
+const board = document.getElementById("board");
 
-function setColor() {
-  targetColor = document.getElementById("colorPicker").value;
-  clueText = document.getElementById("clue").value;
+// fake "hidden target"
+const target = "H13";
 
-  document.getElementById("clueText").innerText = clueText;
+function createBoard() {
+  for (let i = 1; i <= 24; i++) {
+    let tile = document.createElement("div");
+    tile.className = "tile";
+    tile.innerText = "H" + i;
 
-  document.getElementById("secretColor").style.backgroundColor = targetColor;
-}
+    tile.onclick = () => {
+      if ("H" + i === target) {
+        document.getElementById("result").innerText = "Correct! 🎉";
+      } else {
+        document.getElementById("result").innerText = "Wrong ❌ try again";
+      }
+    };
 
-function guess() {
-  let guess = document.getElementById("guessColor").value;
-
-  if (guess === targetColor) {
-    document.getElementById("result").innerText = "Correct! 🎉";
-  } else {
-    document.getElementById("result").innerText = "Wrong ❌ try again";
+    board.appendChild(tile);
   }
 }
+
+createBoard();
