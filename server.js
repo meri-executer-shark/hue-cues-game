@@ -10,32 +10,60 @@ const port = process.env.PORT || 3000;
 
 app.use(express.static("public"));
 
-let rooms = {};
+let rooms = {}; // roomId: { players: [] }
+let roomState = {}; // roomId: { color, chatCount }
+
+// send updated room list to everyone
+function updateRoomList() {
+  io.emit("roomList", Object.keys(rooms));
+}
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
+  updateRoomList();
 
-  socket.on("joinRoom", (roomId) => {
-    socket.join(roomId);
-
+  // CREATE ROOM
+  socket.on("createRoom", (roomId) => {
+    if (!roomId) return;
     if (!rooms[roomId]) {
       rooms[roomId] = { players: [] };
     }
+    updateRoomList();
+  });
 
-    rooms[roomId].players.push(socket.id);
+  // JOIN ROOM
+  socket.on("joinRoom", (roomId) => {
+    if (!roomId) return;
+
+    socket.join(roomId);
+
+    if (!rooms[roomId]) rooms[roomId] = { players: [] };
+
+    if (!rooms[roomId].players.includes(socket.id)) {
+      rooms[roomId].players.push(socket.id);
+    }
 
     io.to(roomId).emit("roomUpdate", rooms[roomId]);
+    updateRoomList();
   });
 
+  // CHOOSER SET COLOR
   socket.on("setColor", ({ roomId, color }) => {
-    io.to(roomId).emit("newRound", {
-      color,
-      chooser: socket.id
-    });
+    if (!roomState[roomId]) roomState[roomId] = {};
+    roomState[roomId].color = color;
+    roomState[roomId].chatCount = 0;
+
+    io.to(roomId).emit("newRound", { color });
   });
 
-  socket.on("guess", ({ roomId, guess }) => {
-    io.to(roomId).emit("guessResult", guess);
+  // CHAT
+  socket.on("chat", ({ roomId, msg }) => {
+    if (!roomState[roomId]) return;
+    if (!roomState[roomId].chatCount) roomState[roomId].chatCount = 0;
+    if (roomState[roomId].chatCount >= 2) return;
+
+    roomState[roomId].chatCount++;
+    io.to(roomId).emit("chatMessage", msg);
   });
 
   socket.on("disconnect", () => {

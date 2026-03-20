@@ -1,52 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Hue Cues Game</title>
-
+  <title>Hue & Cues Lobby</title>
   <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: #111;
-      color: white;
-    }
-
-    .board {
-      display: grid;
-      grid-template-columns: repeat(6, 70px);
-      gap: 6px;
-      justify-content: center;
-      margin-top: 20px;
-    }
-
-    .tile {
-      width: 70px;
-      height: 70px;
-      border-radius: 10px;
-      cursor: pointer;
-      border: 2px solid white;
-      transition: 0.2s;
-    }
-
-    .tile:hover {
-      transform: scale(1.1);
-    }
+    body { font-family: Arial; text-align: center; background: #111; color: white; }
+    .room { padding:10px; margin:10px; background:#222; border-radius:10px; }
+    button { padding:8px 12px; margin:5px; cursor:pointer; }
+    #game { display:none; }
+    #board { display:grid; grid-template-columns:repeat(6,60px); gap:5px; justify-content:center; margin-top:20px; }
+    .tile { width:60px; height:60px; cursor:pointer; }
   </style>
 </head>
-
 <body>
 
-  <h1>Hue Cues 🎮</h1>
+<h1>🎮 Hue & Cues Lobby</h1>
 
-  <div id="board" class="board"></div>
+<div>
+  <input id="roomInput" placeholder="Room code">
+  <button onclick="createRoom()">Create Room</button>
+</div>
 
-  <h2 id="result"></h2>
+<h2>Available Rooms</h2>
+<div id="roomList"></div>
 
-  <!-- IMPORTANT: socket first -->
-  <script src="/socket.io/socket.io.js"></script>
+<hr>
 
-  <!-- your game -->
-  <script src="game.js"></script>
+<div id="game">
+  <h2 id="status"></h2>
+  <div id="board"></div>
+  <input id="msg" placeholder="Chat (chooser only)">
+  <button onclick="sendChat()">Send</button>
+  <div id="chat"></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="game.js"></script>
 
 </body>
 </html>
