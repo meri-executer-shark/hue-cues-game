@@ -10,67 +10,88 @@ const port = process.env.PORT || 3000;
 
 app.use(express.static("public"));
 
-let rooms = {}; // roomId: { players: [] }
-let roomState = {}; // roomId: { color, chatCount }
+let rooms = {};
+let state = {};
 
-// send updated room list to everyone
-function updateRoomList() {
-  io.emit("roomList", Object.keys(rooms));
+// get current host
+function getHost(roomId) {
+  return rooms[roomId].players[state[roomId].hostIndex];
 }
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-  updateRoomList();
-
-  // CREATE ROOM
-  socket.on("createRoom", (roomId) => {
-    if (!roomId) return;
-    if (!rooms[roomId]) {
-      rooms[roomId] = { players: [] };
-    }
-    updateRoomList();
-  });
 
   // JOIN ROOM
   socket.on("joinRoom", (roomId) => {
-    if (!roomId) return;
-
-    socket.join(roomId);
-
-    if (!rooms[roomId]) rooms[roomId] = { players: [] };
+    if (!rooms[roomId]) {
+      rooms[roomId] = { players: [] };
+      state[roomId] = {
+        hostIndex: 0,
+        color: null,
+        guessed: false
+      };
+    }
 
     if (!rooms[roomId].players.includes(socket.id)) {
       rooms[roomId].players.push(socket.id);
     }
 
-    io.to(roomId).emit("roomUpdate", rooms[roomId]);
-    updateRoomList();
+    socket.join(roomId);
+
+    io.to(roomId).emit("roomUpdate", {
+      players: rooms[roomId].players,
+      host: getHost(roomId)
+    });
   });
 
-  // CHOOSER SET COLOR
+  // HOST PICKS COLOR ONLY
   socket.on("setColor", ({ roomId, color }) => {
-    if (!roomState[roomId]) roomState[roomId] = {};
-    roomState[roomId].color = color;
-    roomState[roomId].chatCount = 0;
+    if (!state[roomId]) return;
+
+    let host = getHost(roomId);
+    if (socket.id !== host) return; // block cheating
+
+    state[roomId].color = color;
+    state[roomId].guessed = false;
 
     io.to(roomId).emit("newRound", { color });
   });
 
-  // CHAT
+  // CHAT (FREE BUT SIMPLE)
   socket.on("chat", ({ roomId, msg }) => {
-    if (!roomState[roomId]) return;
-    if (!roomState[roomId].chatCount) roomState[roomId].chatCount = 0;
-    if (roomState[roomId].chatCount >= 2) return;
-
-    roomState[roomId].chatCount++;
     io.to(roomId).emit("chatMessage", msg);
   });
 
-  socket.on("disconnect", () => {
-    console.log("User left:", socket.id);
+  // GUESS SYSTEM
+  socket.on("guess", ({ roomId, color }) => {
+    if (!state[roomId]) return;
+
+    if (state[roomId].guessed) return;
+
+    if (color === state[roomId].color) {
+      state[roomId].guessed = true;
+
+      // NEXT HOST
+      state[roomId].hostIndex =
+        (state[roomId].hostIndex + 1) %
+        rooms[roomId].players.length;
+
+      state[roomId].color = null;
+
+      io.to(roomId).emit("roundWin", {
+        winner: socket.id
+      });
+
+      io.to(roomId).emit("roomUpdate", {
+        players: rooms[roomId].players,
+        host: getHost(roomId)
+      });
+
+      io.to(roomId).emit("nextRound");
+    }
   });
+
 });
 
 server.listen(port, () => {
-  console.log("Server running on port " + port);
+  console.log("Server running on " + port);
 });
